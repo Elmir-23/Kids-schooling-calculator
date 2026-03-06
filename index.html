@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Təhsil haqqına güzəşt Kalkulyatoru</title>
+    <!-- PDF Kitabxanası -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --landau-navy: #002147;
+            --landau-teal: #008080;
+            --landau-gold: #c5a059;
+            --bg-gray: #f4f7f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-gray);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        #chat-container {
+            width: 100%;
+            max-width: 500px;
+            height: 700px; 
+            max-height: 90vh;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+
+        .chat-header { background: var(--landau-navy); color: white; padding: 15px; text-align: center; }
+        .chat-header h2 { margin: 0; font-size: 17px; }
+        .chat-header p { margin: 4px 0 0; font-size: 11px; opacity: 0.7; }
+
+        #chat-log {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background-color: #f9f9f9;
+        }
+
+        .msg { max-width: 85%; padding: 10px 14px; border-radius: 15px; font-size: 14px; line-height: 1.5; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .bot-msg { align-self: flex-start; background: #e9ecef; color: #333; border-bottom-left-radius: 2px; }
+        .user-msg { align-self: flex-end; background: var(--landau-teal); color: white; border-bottom-right-radius: 2px; }
+
+        .info-box {
+            background: linear-gradient(135deg, var(--landau-navy) 0%, #003366 100%);
+            color: white; border-radius: 10px; padding: 14px; font-size: 12px; line-height: 1.6; margin-bottom: 5px;
+        }
+        .info-box h3 { margin: 0 0 8px 0; font-size: 14px; color: var(--landau-gold); }
+        .info-box ul { margin: 5px 0; padding-left: 18px; }
+
+        .input-area { padding: 12px; border-top: 1px solid #eee; display: flex; gap: 8px; background: white; }
+        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none; font-size: 14px; }
+        
+        button { cursor: pointer; transition: 0.2s; font-size: 14px; }
+        #send-btn { background: var(--landau-navy); color: white; border: none; padding: 8px 15px; border-radius: 5px; }
+
+        .options-container { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+        .option-btn {
+            background: white; border: 1px solid var(--landau-teal); color: var(--landau-teal); 
+            font-size: 12px; padding: 6px 10px; border-radius: 20px;
+        }
+        .option-btn:hover { background: var(--landau-teal); color: white; }
+
+        .result-card { background: var(--landau-navy); color: white; padding: 20px; border-radius: 10px; width: 100%; box-sizing: border-box; }
+        .report-section { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0; margin-bottom: 5px; }
+        .report-row { display: flex; justify-content: space-between; font-size: 12.5px; margin: 4px 0; }
+        .report-row.total { font-weight: bold; font-size: 17px; color: var(--landau-gold); margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;}
+
+        .download-btn {
+            background: var(--landau-gold); color: var(--landau-navy); border: none;
+            width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; margin-top: 12px; font-size: 13px;
+        }
+        .kid-summary { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px; margin-top: 8px; }
+
+        #pdf-template { display: none; padding: 40px; color: #333; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+
+<div id="chat-container">
+    <div class="chat-header">
+        <h2>Təhsil haqqına güzəşt Kalkulyatoru</h2>
+        <p>LANDAU School · Güzəşt Siyasəti · LS-HRR-PE-006</p>
+    </div>
+    <div id="chat-log"></div>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="LANDAU email ünvanınızı daxil edin...">
+        <button id="send-btn">Göndər</button>
+    </div>
+</div>
+
+<div id="pdf-template">
+    <h1 style="color: #002147; text-align: center; margin: 0;">LANDAU SCHOOL</h1>
+    <p style="text-align: center; font-size: 14px; color: #666;">Təhsil haqqına güzəşt üzrə rəsmi hesabat</p>
+    <div id="pdf-content" style="margin-top: 30px; line-height: 1.8; font-size: 15px;"></div>
+    <div style="margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px; text-align: center; font-size: 12px; color: #888;">
+        Bu sənəd sistem tərəfindən avtomatik yaradılmışdır.<br>Tarix: <span id="pdf-date"></span>
+    </div>
+</div>
+
+<script>
+    const chatLog = document.getElementById('chat-log');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    const WEBHOOK_URL = "BURA_SIZIN_WEBHOOK_URL_GELECEK";
+
+    let userData = {
+        email: "", role: "", department: "", staj: 0, stajChoice: "", isCore: false, isFormTutor: false, multiChild: 1
+    };
+
+    const schoolSubjects = {
+        "Primary International School": ["İbtidai sinif müəllimi", "Təbiət elmləri müəllimi", "Riyaziyyat müəllimi", "İngilis dili müəllimi"],
+        "Secondary International School": ["Təbiət elmləri müəllimi", "Kimya müəllimi", "Fizika müəllimi", "Biologiya müəllimi", "Riyaziyyat müəllimi", "İngilis dili müəllimi"],
+        "Local School": ["Riyaziyyat müəllimi", "Rus dili və ədəbiyyatı müəllimi", "Azərbaycan dili və ədəbiyyatı müəllimi", "İngilis dili müəllimi", "İbtidai sinif müəllimi"],
+        "PreSchool": ["Məktəbəqədər sinif müəllimi"]
+    };
+
+    window.onload = () => {
+        showWelcomeInfo();
+        addBotMessage("Xoş gəlmisiniz! Başlamaq üçün <b>LANDAU email ünvanınızı</b> daxil edin:");
+    };
+
+    function showWelcomeInfo() {
+        const infoBox = document.createElement('div');
+        infoBox.className = 'info-box';
+        infoBox.innerHTML = `
+            <h3>📋 Endirim Siyasəti - Əsas Qaydalar</h3>
+            <ul>
+                <li><b>Vəzifə kateqoriyası:</b> Səhmdarlar/İdarə heyəti: 100% | Rəhbər heyət: 60% | Müəllim: 50% | Köməkçi: 30%</li>
+                <li><b>Staja görə endirim:</b> 2-4 il: +3% | 4+ il: +5%</li>
+                <li><b>Əlavə endirim:</b> Əsas fənn: +5% | Form Tutor: +5%</li>
+                <li><b>Övlad endirimi:</b> Hər əlavə uşaq üçün + 5% (Yüksək faiz aşağı təhsil haqqına tətbiq olunur)</li>
+            </ul>
+        `;
+        chatLog.appendChild(infoBox);
+    }
+
+    sendBtn.onclick = () => {
+        const val = userInput.value.trim();
+        if (!val) return;
+        if (!userData.email && val.includes("@")) {
+            userData.email = val;
+            addUserMessage(val);
+            userInput.value = "";
+            userInput.disabled = true;
+            askRole();
+        }
+    };
+
+    function addBotMessage(html) {
+        const div = document.createElement('div');
+        div.className = 'msg bot-msg';
+        div.innerHTML = html;
+        chatLog.appendChild(div);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function addUserMessage(text) {
+        const div = document.createElement('div');
+        div.className = 'msg user-msg';
+        div.innerText = text;
+        chatLog.appendChild(div);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function showOptions(options, callback) {
+        const container = document.createElement('div');
+        container.className = 'options-container';
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => {
+                container.style.opacity = '0.3';
+                container.style.pointerEvents = 'none';
+                addUserMessage(opt);
+                callback(opt);
+            };
+            container.appendChild(btn);
+        });
+        chatLog.appendChild(container);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function askRole() {
+        addBotMessage("Zəhmət olmasa <b>vəzifə kateqoriyanızı</b> seçin:");
+        showOptions(["Səhmdarlar/İdarə heyəti", "Rəhbər heyət", "Müəllim və Mütəxəssis Heyət", "Köməkçi heyət"], (choice) => {
+            userData.role = choice;
+            if (choice === "Səhmdarlar/İdarə heyəti") finalize(); 
+            else askDepartment();
+        });
+    }
+
+    function askDepartment() {
+        addBotMessage("Hansı <b>istiqamət</b> üzrə çalışırsınız?");
+        showOptions([
+            "Primary International School", 
+            "Secondary International School", 
+            "Local School", 
+            "PreSchool", 
+            "LEG Corporate Center"
+        ], (choice) => {
+            userData.department = choice;
+            askSeniority();
+        });
+    }
+
+    function askSeniority() {
+        addBotMessage("<b>Neçə ildir LANDAU-da çalışırsınız?</b>");
+        showOptions(["0–2 il", "2–4 il", "4+ il"], (choice) => {
+            userData.stajChoice = choice;
+            userData.staj = (choice === "2–4 il") ? 3 : (choice === "4+ il" ? 5 : 0);
+            
+            // YALNIZ Müəllim/Mütəxəssis və Məktəb istiqamətləri üçündürsə Əsas Fənn soruş
+            if (userData.role === "Müəllim və Mütəxəssis Heyət" && schoolSubjects[userData.department]) {
+                askCoreSubject();
+            } else {
+                askMultiChild();
+            }
+        });
+    }
+
+    function askCoreSubject() {
+        const subjects = schoolSubjects[userData.department] || [];
+        const subjectsHtml = subjects.map(s => `• ${s}`).join('<br>');
+
+        addBotMessage(`<b>Əsas fənn tədris edirsinizmi?</b><br><small style="color:#666; display:block; margin-top:5px;">${userData.department} üzrə əsas fənlər:<br>${subjectsHtml}</small>`);
+        
+        showOptions(["Bəli", "Xeyr"], (choice) => {
+            userData.isCore = (choice === "Bəli");
+            
+            // Form Tutor yalnız Secondary və Local üçün
+            if (userData.department === "Secondary International School" || userData.department === "Local School") {
+                askFormTutor();
+            } else {
+                askMultiChild();
+            }
+        });
+    }
+
+    function askFormTutor() {
+        addBotMessage("5-11-ci siniflərdə <b>Form Tutor</b>sunuz?");
+        showOptions(["Bəli", "Xeyr"], (choice) => {
+            userData.isFormTutor = (choice === "Bəli");
+            askMultiChild();
+        });
+    }
+
+    function askMultiChild() {
+        addBotMessage("LANDAU-da neçə övladınız təhsil alır?");
+        showOptions(["1 övlad", "2 övlad", "3+ övlad"], (choice) => {
+            userData.multiChild = (choice.includes("3")) ? 3 : parseInt(choice);
+            finalize();
+        });
+    }
+
+    function finalize() {
+        let roleBase = 0;
+        if (userData.role.includes("Səhmdarlar")) roleBase = 100;
+        else if (userData.role === "Rəhbər heyət") roleBase = 60;
+        else if (userData.role === "Müəllim və Mütəxəssis Heyət") roleBase = 50;
+        else roleBase = 30;
+
+        const coreVal = userData.isCore ? 5 : 0;
+        const tutorVal = userData.isFormTutor ? 5 : 0;
+        const stajVal = userData.staj;
+
+        let totalBonus = stajVal + coreVal + tutorVal;
+        let finalBasePerChild = Math.min(roleBase + totalBonus, 100);
+
+        let reportHtml = `
+            <div class="report-section">
+                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 3px;">ƏMƏKDAŞ MƏLUMATLARI</div>
+                <div class="report-row"><span>Email:</span> <b>${userData.email}</b></div>
+                <div class="report-row"><span>Kateqoriya:</span> <b>${userData.role}</b></div>
+                <div class="report-row"><span>İstiqamət:</span> <b>${userData.department || 'N/A'}</b></div>
+            </div>
+            <div class="report-section">
+                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 3px;">HESABLAMA DETALLARI</div>
+                <div class="report-row"><span>Kateqoriya üzrə:</span> <span>+${roleBase}%</span></div>
+                <div class="report-row"><span>Staja görə:</span> <span>+${stajVal}%</span></div>
+                ${coreVal > 0 ? `<div class="report-row"><span>Əsas fənn:</span> <span>+5%</span></div>` : ''}
+                ${tutorVal > 0 ? `<div class="report-row"><span>Form Tutor:</span> <span>+5%</span></div>` : ''}
+            </div>
+            <div class="kid-summary">
+                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 3px;">YEKUN GÜZƏŞT</div>
+        `;
+
+        let pdfReport = `
+            <div style="background:#f4f4f4; padding:15px; border-radius:5px;">
+                <b>Əməkdaş:</b> ${userData.email}<br>
+                <b>Vəzifə kateqoriyası:</b> ${userData.role}<br>
+                <b>İstiqamət:</b> ${userData.department || 'N/A'}
+            </div>
+            <h4 style="color:#002147; border-bottom:1px solid #ddd; padding-bottom:5px;">Güzəştin Hesablanması:</h4>
+            <table style="width:100%; font-size:14px;">
+                <tr><td>Kateqoriya üzrə əsas endirim:</td><td style="text-align:right;">+${roleBase}%</td></tr>
+                <tr><td>Staja görə endirim:</td><td style="text-align:right;">+${stajVal}%</td></tr>
+                ${coreVal > 0 ? `<tr><td>Əsas fənn üçün əlavə endirim:</td><td style="text-align:right;">+5%</td></tr>` : ''}
+                ${tutorVal > 0 ? `<tr><td>Form Tutor üçün əlavə endirim:</td><td style="text-align:right;">+5%</td></tr>` : ''}
+            </table>
+            <h4 style="color:#002147; border-bottom:1px solid #ddd; padding-bottom:5px; margin-top:20px;">Yekun Nəticə:</h4>
+        `;
+
+        for (let i = 0; i < userData.multiChild; i++) {
+            let childDisc = Math.min(finalBasePerChild + (i * 5), 100);
+            let label = (i === 0) ? "1-ci övlad (Ən yüksək təhsil haqqı)" : `${i+1}-ci övlad (Aşağı təhsil haqqı)`;
+            
+            reportHtml += `
+                <div class="report-row ${i === 0 ? 'total' : ''}" style="border-top: ${i > 0 ? '1px solid rgba(255,255,255,0.1)' : 'none'}; padding-top:4px;">
+                    <span style="font-size:11px; font-weight:normal;">${label}:</span> 
+                    <span>${childDisc}%</span>
+                </div>`;
+            
+            pdfReport += `<div style="padding:8px; background:${i === 0 ? '#fffbcc' : '#fff'}; border:1px solid #ddd; margin-bottom:5px;">
+                <b>${label}:</b> <span style="float:right; color:#002147; font-size:18px;">${childDisc}%</span>
+            </div>`;
+        }
+
+        reportHtml += `</div>`;
+
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.innerHTML = reportHtml + `<button class="download-btn" onclick="downloadPDF()">📥 PDF Hesabatı yüklə</button>`;
+        chatLog.appendChild(card);
+        chatLog.scrollTop = chatLog.scrollHeight;
+
+        document.getElementById('pdf-content').innerHTML = pdfReport;
+        document.getElementById('pdf-date').innerText = new Date().toLocaleString();
+
+        addBotMessage("Hesabat hazırlandı.");
+        saveToSheet(userData, finalBasePerChild);
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('pdf-template');
+        element.style.display = 'block';
+        const opt = {
+            margin: 0.5,
+            filename: `Guzesht_Hesabati_${userData.email.split('@')[0]}.pdf`,
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save().then(() => {
+            element.style.display = 'none';
+        });
+    }
+
+    function saveToSheet(data, finalBase) {
+        if (WEBHOOK_URL.includes("BURA_SIZIN")) return;
+        fetch(WEBHOOK_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...data, finalBase, timestamp: new Date().toISOString() })
+        });
+    }
+</script>
+</body>
+</html>
