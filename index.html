@@ -108,6 +108,7 @@
     </div>
 </div>
 
+<!-- PDF Template Hidden -->
 <div id="pdf-template">
     <h1 style="color: #002147; text-align: center; margin: 0;">LANDAU SCHOOL</h1>
     <p style="text-align: center; font-size: 14px; color: #666;">Təhsil haqqına güzəşt üzrə rəsmi hesabat</p>
@@ -118,14 +119,23 @@
 </div>
 
 <script>
+    // Global variable initialization
     const chatLog = document.getElementById('chat-log');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
 
+    // PLACEHOLDER for your Google Sheets Webhook URL
     const WEBHOOK_URL = "BURA_SIZIN_WEBHOOK_URL_GELECEK";
 
     let userData = {
-        email: "", role: "", department: "", staj: 0, stajChoice: "", isCore: false, isFormTutor: false, multiChild: 1
+        email: "",
+        role: "",
+        department: "",
+        staj: 0,
+        stajChoice: "",
+        isCore: false,
+        isFormTutor: false,
+        multiChild: 1
     };
 
     const schoolSubjects = {
@@ -135,38 +145,7 @@
         "PreSchool": ["Məktəbəqədər sinif müəllimi"]
     };
 
-    window.onload = () => {
-        showWelcomeInfo();
-        addBotMessage("Xoş gəlmisiniz! Başlamaq üçün <b>LANDAU email ünvanınızı</b> daxil edin:");
-    };
-
-    function showWelcomeInfo() {
-        const infoBox = document.createElement('div');
-        infoBox.className = 'info-box';
-        infoBox.innerHTML = `
-            <h3>📋 Endirim Siyasəti - Əsas Qaydalar</h3>
-            <ul>
-                <li><b>Vəzifə kateqoriyası:</b> Səhmdarlar/İdarə heyəti: 100% | Rəhbər heyət: 60% | Müəllim: 50% | Köməkçi: 30%</li>
-                <li><b>Staja görə endirim:</b> 2-4 il: +3% | 4+ il: +5%</li>
-                <li><b>Əlavə endirim:</b> Əsas fənn: +5% | Form Tutor: +5%</li>
-                <li><b>Övlad endirimi:</b> Hər əlavə uşaq üçün + 5% (Yüksək faiz aşağı təhsil haqqına tətbiq olunur)</li>
-            </ul>
-        `;
-        chatLog.appendChild(infoBox);
-    }
-
-    sendBtn.onclick = () => {
-        const val = userInput.value.trim();
-        if (!val) return;
-        if (!userData.email && val.includes("@")) {
-            userData.email = val;
-            addUserMessage(val);
-            userInput.value = "";
-            userInput.disabled = true;
-            askRole();
-        }
-    };
-
+    // Bot message function
     function addBotMessage(html) {
         const div = document.createElement('div');
         div.className = 'msg bot-msg';
@@ -175,6 +154,7 @@
         chatLog.scrollTop = chatLog.scrollHeight;
     }
 
+    // User message function
     function addUserMessage(text) {
         const div = document.createElement('div');
         div.className = 'msg user-msg';
@@ -183,6 +163,7 @@
         chatLog.scrollTop = chatLog.scrollHeight;
     }
 
+    // Options UI generator
     function showOptions(options, callback) {
         const container = document.createElement('div');
         container.className = 'options-container';
@@ -202,6 +183,43 @@
         chatLog.scrollTop = chatLog.scrollHeight;
     }
 
+    // 1. Initial Info Box
+    function showWelcomeInfo() {
+        const infoBox = document.createElement('div');
+        infoBox.className = 'info-box';
+        infoBox.innerHTML = `
+            <h3>📋 Endirim Siyasəti - Əsas Qaydalar</h3>
+            <ul>
+                <li><b>Vəzifə kateqoriyası:</b> Səhmdarlar/İdarə heyəti: 100% | Rəhbər heyət: 60% | Müəllim: 50% | Köməkçi: 30%</li>
+                <li><b>Staja görə endirim:</b> 2-4 il: +3% | 4+ il: +5%</li>
+                <li><b>Əlavə endirim:</b> Əsas fənn: +5% | Form Tutor: +5%</li>
+                <li><b>Övlad endirimi:</b> Hər əlavə uşaq üçün + 5% (Yüksək faiz aşağı təhsil haqqına tətbiq olunur)</li>
+            </ul>
+        `;
+        chatLog.appendChild(infoBox);
+    }
+
+    // START BOT
+    document.addEventListener('DOMContentLoaded', () => {
+        showWelcomeInfo();
+        setTimeout(() => {
+            addBotMessage("Xoş gəlmisiniz! Başlamaq üçün <b>LANDAU email ünvanınızı</b> daxil edin:");
+        }, 500);
+    });
+
+    // Input handling
+    sendBtn.onclick = () => {
+        const val = userInput.value.trim();
+        if (!val) return;
+        if (!userData.email && val.includes("@")) {
+            userData.email = val;
+            addUserMessage(val);
+            userInput.value = "";
+            userInput.disabled = true;
+            askRole();
+        }
+    };
+
     function askRole() {
         addBotMessage("Zəhmət olmasa <b>vəzifə kateqoriyanızı</b> seçin:");
         showOptions(["Səhmdarlar/İdarə heyəti", "Rəhbər heyət", "Müəllim və Mütəxəssis Heyət", "Köməkçi heyət"], (choice) => {
@@ -213,13 +231,7 @@
 
     function askDepartment() {
         addBotMessage("Hansı <b>istiqamət</b> üzrə çalışırsınız?");
-        showOptions([
-            "Primary International School", 
-            "Secondary International School", 
-            "Local School", 
-            "PreSchool", 
-            "LEG Corporate Center"
-        ], (choice) => {
+        showOptions(["Primary International School", "Secondary International School", "Local School", "PreSchool", "LEG Corporate Center"], (choice) => {
             userData.department = choice;
             askSeniority();
         });
@@ -231,7 +243,6 @@
             userData.stajChoice = choice;
             userData.staj = (choice === "2–4 il") ? 3 : (choice === "4+ il" ? 5 : 0);
             
-            // YALNIZ Müəllim/Mütəxəssis və Məktəb istiqamətləri üçündürsə Əsas Fənn soruş
             if (userData.role === "Müəllim və Mütəxəssis Heyət" && schoolSubjects[userData.department]) {
                 askCoreSubject();
             } else {
@@ -243,13 +254,9 @@
     function askCoreSubject() {
         const subjects = schoolSubjects[userData.department] || [];
         const subjectsHtml = subjects.map(s => `• ${s}`).join('<br>');
-
         addBotMessage(`<b>Əsas fənn tədris edirsinizmi?</b><br><small style="color:#666; display:block; margin-top:5px;">${userData.department} üzrə əsas fənlər:<br>${subjectsHtml}</small>`);
-        
         showOptions(["Bəli", "Xeyr"], (choice) => {
             userData.isCore = (choice === "Bəli");
-            
-            // Form Tutor yalnız Secondary və Local üçün
             if (userData.department === "Secondary International School" || userData.department === "Local School") {
                 askFormTutor();
             } else {
@@ -295,48 +302,15 @@
                 <div class="report-row"><span>Kateqoriya:</span> <b>${userData.role}</b></div>
                 <div class="report-row"><span>İstiqamət:</span> <b>${userData.department || 'N/A'}</b></div>
             </div>
-            <div class="report-section">
-                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 3px;">HESABLAMA DETALLARI</div>
-                <div class="report-row"><span>Kateqoriya üzrə:</span> <span>+${roleBase}%</span></div>
-                <div class="report-row"><span>Staja görə:</span> <span>+${stajVal}%</span></div>
-                ${coreVal > 0 ? `<div class="report-row"><span>Əsas fənn:</span> <span>+5%</span></div>` : ''}
-                ${tutorVal > 0 ? `<div class="report-row"><span>Form Tutor:</span> <span>+5%</span></div>` : ''}
-            </div>
             <div class="kid-summary">
-                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 3px;">YEKUN GÜZƏŞT</div>
-        `;
-
-        let pdfReport = `
-            <div style="background:#f4f4f4; padding:15px; border-radius:5px;">
-                <b>Əməkdaş:</b> ${userData.email}<br>
-                <b>Vəzifə kateqoriyası:</b> ${userData.role}<br>
-                <b>İstiqamət:</b> ${userData.department || 'N/A'}
-            </div>
-            <h4 style="color:#002147; border-bottom:1px solid #ddd; padding-bottom:5px;">Güzəştin Hesablanması:</h4>
-            <table style="width:100%; font-size:14px;">
-                <tr><td>Kateqoriya üzrə əsas endirim:</td><td style="text-align:right;">+${roleBase}%</td></tr>
-                <tr><td>Staja görə endirim:</td><td style="text-align:right;">+${stajVal}%</td></tr>
-                ${coreVal > 0 ? `<tr><td>Əsas fənn üçün əlavə endirim:</td><td style="text-align:right;">+5%</td></tr>` : ''}
-                ${tutorVal > 0 ? `<tr><td>Form Tutor üçün əlavə endirim:</td><td style="text-align:right;">+5%</td></tr>` : ''}
-            </table>
-            <h4 style="color:#002147; border-bottom:1px solid #ddd; padding-bottom:5px; margin-top:20px;">Yekun Nəticə:</h4>
+                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 3px;">YEKUN GÜZƏŞTLƏR</div>
         `;
 
         for (let i = 0; i < userData.multiChild; i++) {
             let childDisc = Math.min(finalBasePerChild + (i * 5), 100);
-            let label = (i === 0) ? "1-ci övlad (Ən yüksək təhsil haqqı)" : `${i+1}-ci övlad (Aşağı təhsil haqqı)`;
-            
-            reportHtml += `
-                <div class="report-row ${i === 0 ? 'total' : ''}" style="border-top: ${i > 0 ? '1px solid rgba(255,255,255,0.1)' : 'none'}; padding-top:4px;">
-                    <span style="font-size:11px; font-weight:normal;">${label}:</span> 
-                    <span>${childDisc}%</span>
-                </div>`;
-            
-            pdfReport += `<div style="padding:8px; background:${i === 0 ? '#fffbcc' : '#fff'}; border:1px solid #ddd; margin-bottom:5px;">
-                <b>${label}:</b> <span style="float:right; color:#002147; font-size:18px;">${childDisc}%</span>
-            </div>`;
+            let label = (i === 0) ? "1-ci övlad (Əsas)" : `${i+1}-ci övlad (Aşağı təhsil haqqı)`;
+            reportHtml += `<div class="report-row total"><span>${label}:</span> <span>${childDisc}%</span></div>`;
         }
-
         reportHtml += `</div>`;
 
         const card = document.createElement('div');
@@ -344,36 +318,22 @@
         card.innerHTML = reportHtml + `<button class="download-btn" onclick="downloadPDF()">📥 PDF Hesabatı yüklə</button>`;
         chatLog.appendChild(card);
         chatLog.scrollTop = chatLog.scrollHeight;
-
-        document.getElementById('pdf-content').innerHTML = pdfReport;
-        document.getElementById('pdf-date').innerText = new Date().toLocaleString();
-
         addBotMessage("Hesabat hazırlandı.");
         saveToSheet(userData, finalBasePerChild);
     }
 
     function downloadPDF() {
         const element = document.getElementById('pdf-template');
+        document.getElementById('pdf-date').innerText = new Date().toLocaleString();
+        document.getElementById('pdf-content').innerHTML = `Güzəşt hesabatı əməkdaş: ${userData.email}`;
         element.style.display = 'block';
-        const opt = {
-            margin: 0.5,
-            filename: `Guzesht_Hesabati_${userData.email.split('@')[0]}.pdf`,
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save().then(() => {
-            element.style.display = 'none';
-        });
+        const opt = { margin: 0.5, filename: `Guzesht.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+        html2pdf().set(opt).from(element).save().then(() => { element.style.display = 'none'; });
     }
 
     function saveToSheet(data, finalBase) {
         if (WEBHOOK_URL.includes("BURA_SIZIN")) return;
-        fetch(WEBHOOK_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...data, finalBase, timestamp: new Date().toISOString() })
-        });
+        fetch(WEBHOOK_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...data, finalBase, timestamp: new Date().toISOString() }) });
     }
 </script>
 </body>
