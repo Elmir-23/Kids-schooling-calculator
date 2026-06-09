@@ -550,13 +550,14 @@
                 userData.stajChoice = choice;
                 userData.staj = choice === "2–4 il" ? 3 : (choice === "4+ il" ? 5 : 0);
 
-                if (userData.role === "Müəllim və Mütəxəssis Heyət" && schoolSubjects[userData.department]) {
+                if (userData.role === "Müəllim/Mütəxəssis Heyət" && schoolSubjects[userData.department]) {
                     askCoreSubject();
                 } else {
                     askMultiChild();
                 }
             });
         }
+
 
         function askCoreSubject() {
             const subjects = schoolSubjects[userData.department] || [];
@@ -606,7 +607,7 @@
 
             if (userData.role.includes("Səhmdarlar")) roleBase = 100;
             else if (userData.role === "Rəhbər heyət") roleBase = 60;
-            else if (userData.role === "Müəllim və Mütəxəssis Heyət") roleBase = 50;
+            else if (userData.role === "Müəllim/Mütəxəssis Heyət") roleBase = 50;
             else roleBase = 30;
 
             const coreVal = userData.isCore ? 5 : 0;
