@@ -619,7 +619,7 @@
 
             const childDiscounts = [];
             for (let i = 0; i < userData.multiChild; i++) {
-                const childDisc = Math.min(finalBasePerChild + (i * 5), 100);
+                const childDisc = i === 0 ? finalBasePerChild : Math.min(finalBasePerChild + 5, 100);
                 childDiscounts.push({
                     childNo: i + 1,
                     label: i === 0 ? "1-ci övlad (Əsas)" : `${i + 1}-ci övlad (Aşağı təhsil haqqı)`,
